@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F1 Analytics — план проекта</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#fff;color:#1a1a1a;padding:2rem}
+.nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.5rem}
+.nav-btn{font-size:13px;padding:5px 12px;border-radius:999px;border:1px solid #ccc;background:transparent;color:#555;cursor:pointer;transition:all .15s}
+.nav-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.section{display:none}
+.section.active{display:block}
+
+.phase{border:1px solid #e5e5e5;border-radius:12px;margin-bottom:12px;overflow:hidden}
+.phase-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
+.phase-header:hover{background:#f9f9f9}
+.phase-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.phase-title{font-size:15px;font-weight:500;flex:1}
+.phase-meta{font-size:12px;color:#888}
+.phase-chevron{font-size:12px;color:#aaa;transition:transform .2s}
+.phase-chevron.open{transform:rotate(180deg)}
+.phase-body{display:none;padding:0 16px 16px;border-top:1px solid #e5e5e5}
+.phase-body.open{display:block}
+
+.task-group{margin-top:14px}
+.task-group-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#aaa;margin-bottom:8px}
+.task{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #f0f0f0}
+.task:last-child{border-bottom:none}
+.task-name{font-size:13px;flex:1}
+.task-tag{font-size:11px;padding:2px 7px;border-radius:999px;flex-shrink:0;align-self:flex-start;margin-top:1px}
+.tag-be{background:#E1F5EE;color:#085041}
+.tag-db{background:#EEEDFE;color:#3C3489}
+.tag-infra{background:#FAEEDA;color:#633806}
+.tag-test{background:#E6F1FB;color:#0C447C}
+.tag-fe{background:#FAECE7;color:#712B13}
+
+.model-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:8px}
+.model-card{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden}
+.model-head{padding:8px 10px;font-size:13px;font-weight:500;border-bottom:1px solid #e5e5e5;background:#f9f9f9}
+.model-field{padding:4px 10px;font-size:12px;color:#555;font-family:monospace;border-bottom:1px solid #f5f5f5}
+.model-field:last-child{border-bottom:none}
+.field-pk{color:#b45309}
+.field-fk{color:#1d6fb5}
+
+.endpoint-list{margin-top:8px}
+.endpoint{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f0}
+.endpoint:last-child{border-bottom:none}
+.method{font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px;font-family:monospace;flex-shrink:0;margin-top:1px}
+.get{background:#E1F5EE;color:#085041}
+.post{background:#E6F1FB;color:#0C447C}
+.endpoint-path{font-size:13px;font-family:monospace;flex:1}
+.endpoint-desc{font-size:12px;color:#888;margin-top:2px}
+
+.stack-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.stack-cat{border:1px solid #e5e5e5;border-radius:8px;padding:12px}
+.stack-cat-title{font-size:12px;font-weight:600;color:#888;margin-bottom:8px}
+.stack-item{font-size:13px;padding:3px 0;display:flex;justify-content:space-between;align-items:center}
+.stack-note{font-size:11px;color:#aaa}
+
+.coverage-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f0}
+.coverage-row:last-child{border-bottom:none}
+.coverage-label{font-size:13px;flex:1}
+.coverage-bar-bg{width:120px;height:6px;background:#eee;border-radius:3px;overflow:hidden;flex-shrink:0}
+.coverage-bar-fill{height:100%;border-radius:3px}
+.coverage-pct{font-size:12px;color:#888;min-width:32px;text-align:right}
+.roadmap-note{font-size:13px;color:#666;line-height:1.6;padding:12px;background:#f9f9f9;border-radius:8px;margin-top:12px}
+.section-subtitle{font-size:13px;font-weight:600;color:#888;margin-bottom:8px;margin-top:16px}
+.endpoint-section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#aaa;padding:16px 0 8px}
+</style>
+</head>
+<body>
+
+<div style="margin-bottom:1.5rem">
+  <div style="font-size:20px;font-weight:500;margin-bottom:4px">F1 Analytics Platform</div>
+  <div style="font-size:14px;color:#888">Подробный план проекта — этапы, модели, API, стек, покрытие роадмапа</div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showSection('phases',this)">Этапы разработки</button>
+  <button class="nav-btn" onclick="showSection('models',this)">Модели данных</button>
+  <button class="nav-btn" onclick="showSection('api',this)">API эндпоинты</button>
+  <button class="nav-btn" onclick="showSection('stack',this)">Стек</button>
+  <button class="nav-btn" onclick="showSection('coverage',this)">Охват роадмапа</button>
+</div>
+
+<!-- PHASES -->
+<div id="phases" class="section active">
+
+  <div class="phase">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num" style="background:#E1F5EE;color:#085041">1</div>
+      <div class="phase-title">Фундамент проекта</div>
+      <div class="phase-meta">~1 неделя</div>
+      <div class="phase-chevron">▼</div>
+    </div>
+    <div class="phase-body">
+      <div class="task-group">
+        <div class="task-group-label">Инфраструктура</div>
+        <div class="task"><span class="task-name">Создать репозиторий, настроить .gitignore, pre-commit хуки (black, flake8, isort)</span><span class="task-tag tag-infra">infra</span></div>
+        <div class="task"><span class="task-name">Написать docker-compose.yml с сервисами: web, db (PostgreSQL), redis, rabbitmq, celery-worker, celery-beat</span><span class="task-tag tag-infra">infra</span></div>
+        <div class="task"><span class="task-name">Настроить переменные окружения через .env + python-decouple</span><span class="task-tag tag-infra">infra</span></div>
+        <div class="task"><span class="task-name">Настроить Django: INSTALLED_APPS, DATABASES, CACHES, CELERY_BROKER_URL</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Создать структуру Django-приложений: core, seasons, races, drivers, constructors, sync</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Подключить DRF: JWT, пагинация, фильтры</span><span class="task-tag tag-be">backend</span></div>
+      </div>
+      <div class="task-group">
+        <div class="task-group-label">Первые модели</div>
+        <div class="task"><span class="task-name">Написать модели Season, Circuit, Race, Driver, Constructor и сделать первые миграции</span><span class="task-tag tag-db">БД</span></div>
+        <div class="task"><span class="task-name">Зарегистрировать модели в Django Admin с фильтрами и поиском</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Написать первый smoke-тест: pytest проверяет что приложение запускается и миграции применены</span><span class="task-tag tag-test">тест</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num" style="background:#E1F5EE;color:#085041">2</div>
+      <div class="phase-title">Синхронизация данных</div>
+      <div class="phase-meta">~2 недели</div>
+      <div class="phase-chevron">▼</div>
+    </div>
+    <div class="phase-body">
+      <div class="task-group">
+        <div class="task-group-label">Интеграция с Jolpica-F1 API</div>
+        <div class="task"><span class="task-name">Написать клиент JolpicaClient с retry-логикой, rate limiting и логированием</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Реализовать паттерн upsert (update_or_create) — повторный запуск таски не дублирует данные</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Таска sync_seasons: загрузить все сезоны с 2018 по текущий</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Таска sync_races: гонки, трассы, результаты и стартовая решётка</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Таска sync_drivers_constructors: пилоты, команды, привязка пилот-команда по сезону</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Таска sync_pitstops: данные пит-стопов по каждой гонке</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Таска sync_lap_times: времена кругов по каждой гонке (с 1996)</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Таска sync_standings: личный зачёт и кубок конструкторов</span><span class="task-tag tag-be">backend</span></div>
+      </div>
+      <div class="task-group">
+        <div class="task-group-label">Celery и расписание</div>
+        <div class="task"><span class="task-name">Celery Beat: каждое воскресенье в 18:00 UTC запускать sync_latest_race</span><span class="task-tag tag-infra">infra</span></div>
+        <div class="task"><span class="task-name">Модель SyncLog: фиксировать каждый запуск (статус, время, количество записей, ошибка)</span><span class="task-tag tag-db">БД</span></div>
+        <div class="task"><span class="task-name">Обработка "данные ещё не готовы": если гонка <2ч назад — retry через 30 минут</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Команда manage.py sync_historical для разовой загрузки всей истории</span><span class="task-tag tag-be">backend</span></div>
+      </div>
+      <div class="task-group">
+        <div class="task-group-label">Тесты</div>
+        <div class="task"><span class="task-name">Unit-тесты для JolpicaClient с моками: проверять retry, обработку 404, 429</span><span class="task-tag tag-test">тест</span></div>
+        <div class="task"><span class="task-name">Интеграционный тест для upsert: запустить таску дважды, проверить что записей не стало вдвое больше</span><span class="task-tag tag-test">тест</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num" style="background:#E1F5EE;color:#085041">3</div>
+      <div class="phase-title">Базовый REST API</div>
+      <div class="phase-meta">~2 недели</div>
+      <div class="phase-chevron">▼</div>
+    </div>
+    <div class="phase-body">
+      <div class="task-group">
+        <div class="task-group-label">Сериализаторы и ViewSets</div>
+        <div class="task"><span class="task-name">Сериализаторы для всех моделей с вложенными объектами</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">ViewSets: Season, Race, Driver, Constructor, Circuit</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Роутер DRF: зарегистрировать все ViewSets, URL-структура /api/v1/</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Фильтрация через django-filter: сезон, трасса, команда, пилот</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Сортировка и поиск: ordering_fields, search_fields</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Пагинация: PageNumberPagination, page_size=20, max=100</span><span class="task-tag tag-be">backend</span></div>
+      </div>
+      <div class="task-group">
+        <div class="task-group-label">Аутентификация и документация</div>
+        <div class="task"><span class="task-name">JWT через simplejwt: /api/token/, /api/token/refresh/</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Разграничение: чтение публично, запись только для staff</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">drf-spectacular: Swagger UI и ReDoc по OpenAPI схеме</span><span class="task-tag tag-be">backend</span></div>
+      </div>
+      <div class="task-group">
+        <div class="task-group-label">Тесты</div>
+        <div class="task"><span class="task-name">E2E тесты для каждого эндпоинта: статус-коды, структура, пагинация, фильтрация</span><span class="task-tag tag-test">тест</span></div>
+        <div class="task"><span class="task-name">Тесты permissions: анонимный читает, анонимный не может POST</span><span class="task-tag tag-test">тест</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num" style="background:#E1F5EE;color:#085041">4</div>
+      <div class="phase-title">Аналитические эндпоинты</div>
+      <div class="phase-meta">~3 недели</div>
+      <div class="phase-chevron">▼</div>
+    </div>
+    <div class="phase-body">
+      <div class="task-group">
+        <div class="task-group-label">Сравнение пилотов</div>
+        <div class="task"><span class="task-name">GET /analytics/drivers/compare/ — очки, подиумы, DNF, поулы, средний старт/финиш</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Агрегация через ORM: annotate + values, без N+1</span><span class="task-tag tag-db">БД</span></div>
+        <div class="task"><span class="task-name">Кэш в Redis на 1 час, инвалидация после sync</span><span class="task-tag tag-infra">infra</span></div>
+      </div>
+      <div class="task-group">
+        <div class="task-group-label">Анализ темпа и рекорды</div>
+        <div class="task"><span class="task-name">GET /analytics/races/{id}/pace/ — медианный темп по кругам с разбивкой по стинтам</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">GET /analytics/circuits/{id}/lap-records/ — рекорды кругов по годам</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Индексы в PostgreSQL на (race_id, driver_id), проверить через EXPLAIN ANALYZE</span><span class="task-tag tag-db">БД</span></div>
+      </div>
+      <div class="task-group">
+        <div class="task-group-label">Стратегии и чемпионат</div>
+        <div class="task"><span class="task-name">GET /analytics/races/{id}/strategies/ — стинты, круги пит-стопов по каждому пилоту</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">GET /analytics/seasons/{year}/championship-progress/ — прогресс очков по этапам</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">GET /analytics/constructors/dominance/ — доля побед команд по сезонам</span><span class="task-tag tag-be">backend</span></div>
+      </div>
+      <div class="task-group">
+        <div class="task-group-label">Тесты</div>
+        <div class="task"><span class="task-name">Unit-тесты для каждой аналитической функции с фикстурами</span><span class="task-tag tag-test">тест</span></div>
+        <div class="task"><span class="task-name">Тест кэширования: второй запрос не делает SQL-запросы</span><span class="task-tag tag-test">тест</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num" style="background:#E1F5EE;color:#085041">5</div>
+      <div class="phase-title">Деплой и CI/CD</div>
+      <div class="phase-meta">~1 неделя</div>
+      <div class="phase-chevron">▼</div>
+    </div>
+    <div class="phase-body">
+      <div class="task-group">
+        <div class="task-group-label">Docker production</div>
+        <div class="task"><span class="task-name">Dockerfile: multi-stage build, prod без dev-зависимостей</span><span class="task-tag tag-infra">infra</span></div>
+        <div class="task"><span class="task-name">docker-compose.prod.yml: Gunicorn, volumes для static, restart: always</span><span class="task-tag tag-infra">infra</span></div>
+        <div class="task"><span class="task-name">Nginx: reverse proxy, раздача static, gzip, заголовки безопасности</span><span class="task-tag tag-infra">infra</span></div>
+        <div class="task"><span class="task-name">SSL через Certbot + Let's Encrypt на VPS</span><span class="task-tag tag-infra">infra</span></div>
+      </div>
+      <div class="task-group">
+        <div class="task-group-label">GitHub Actions</div>
+        <div class="task"><span class="task-name">Пайплайн lint: black, flake8, isort на каждый push</span><span class="task-tag tag-infra">infra</span></div>
+        <div class="task"><span class="task-name">Пайплайн test: PostgreSQL + Redis в Actions, pytest с coverage</span><span class="task-tag tag-infra">infra</span></div>
+        <div class="task"><span class="task-name">Пайплайн deploy: образ → Docker Hub → SSH на сервер → docker compose up</span><span class="task-tag tag-infra">infra</span></div>
+        <div class="task"><span class="task-name">Secrets в GitHub: DATABASE_URL, SECRET_KEY, SSH_PRIVATE_KEY</span><span class="task-tag tag-infra">infra</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num" style="background:#FAEEDA;color:#633806">6</div>
+      <div class="phase-title">Логирование и мониторинг</div>
+      <div class="phase-meta">~1 неделя</div>
+      <div class="phase-chevron">▼</div>
+    </div>
+    <div class="phase-body">
+      <div class="task-group">
+        <div class="task-group-label">Логирование</div>
+        <div class="task"><span class="task-name">structlog: JSON-формат, разные уровни для prod/dev, ротация файлов</span><span class="task-tag tag-infra">infra</span></div>
+        <div class="task"><span class="task-name">Логировать каждый sync: записей создано/обновлено, время, ошибки</span><span class="task-tag tag-be">backend</span></div>
+        <div class="task"><span class="task-name">Middleware для логирования HTTP: метод, путь, статус, время ответа</span><span class="task-tag tag-be">backend</span></div>
+      </div>
+      <div class="task-group">
+        <div class="task-group-label">Метрики (бонус)</div>
+        <div class="task"><span class="task-name">django-prometheus: экспорт метрик на /metrics/</span><span class="task-tag tag-infra">infra</span></div>
+        <div class="task"><span class="task-name">Prometheus в docker-compose: scrape каждые 15 секунд</span><span class="task-tag tag-infra">infra</span></div>
+        <div class="task"><span class="task-name">Grafana: RPS, время ответа API, активные Celery-таски, размер БД</span><span class="task-tag tag-infra">infra</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-num" style="background:#FAEEDA;color:#633806">7</div>
+      <div class="phase-title">Фронтенд (с Claude Code)</div>
+      <div class="phase-meta">~2 недели</div>
+      <div class="phase-chevron">▼</div>
+    </div>
+    <div class="phase-body">
+      <div class="task-group">
+        <div class="task-group-label">Настройка</div>
+        <div class="task"><span class="task-name">Создать .claude/skills/f1-api/SKILL.md со структурой всех эндпоинтов</span><span class="task-tag tag-fe">фронт</span></div>
+        <div class="task"><span class="task-name">Установить frontend-design скилл от Anthropic в ~/.claude/skills/</span><span class="task-tag tag-fe">фронт</span></div>
+        <div class="task"><span class="task-name">React + Vite + Tailwind: Claude Code scaffoldит структуру</span><span class="task-tag tag-fe">фронт</span></div>
+      </div>
+      <div class="task-group">
+        <div class="task-group-label">Страницы</div>
+        <div class="task"><span class="task-name">Главная: текущий сезон, последние результаты, топ-5 чемпионата</span><span class="task-tag tag-fe">фронт</span></div>
+        <div class="task"><span class="task-name">Сравнение пилотов: выбор двух пилотов + сезона, таблица + radar chart</span><span class="task-tag tag-fe">фронт</span></div>
+        <div class="task"><span class="task-name">Гонка: результаты, график темпа по кругам, стратегии пит-стопов</span><span class="task-tag tag-fe">фронт</span></div>
+        <div class="task"><span class="task-name">Чемпионат: линейный график прогресса очков по этапам</span><span class="task-tag tag-fe">фронт</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="roadmap-note">
+    Итого ~12 недель при занятости ~10 часов в неделю. Этапы 1–5 — обязательная база для портфолио. Этапы 6–7 — усиление проекта.
+  </div>
+</div>
+
+<!-- MODELS -->
+<div id="models" class="section">
+  <div class="model-grid">
+    <div class="model-card"><div class="model-head">Season</div><div class="model-field field-pk">id (PK)</div><div class="model-field">year (unique)</div><div class="model-field">total_rounds</div><div class="model-field">synced_at</div></div>
+    <div class="model-card"><div class="model-head">Circuit</div><div class="model-field field-pk">id (PK)</div><div class="model-field">jolpica_id (unique)</div><div class="model-field">name</div><div class="model-field">country</div><div class="model-field">locality</div><div class="model-field">lat / lng</div></div>
+    <div class="model-card"><div class="model-head">Race</div><div class="model-field field-pk">id (PK)</div><div class="model-field field-fk">season_id (FK)</div><div class="model-field field-fk">circuit_id (FK)</div><div class="model-field">round</div><div class="model-field">name</div><div class="model-field">date</div><div class="model-field">is_sprint</div></div>
+    <div class="model-card"><div class="model-head">Driver</div><div class="model-field field-pk">id (PK)</div><div class="model-field">jolpica_id (unique)</div><div class="model-field">code (HAM, VER...)</div><div class="model-field">first_name</div><div class="model-field">last_name</div><div class="model-field">nationality</div><div class="model-field">date_of_birth</div></div>
+    <div class="model-card"><div class="model-head">Constructor</div><div class="model-field field-pk">id (PK)</div><div class="model-field">jolpica_id (unique)</div><div class="model-field">name</div><div class="model-field">nationality</div></div>
+    <div class="model-card"><div class="model-head">RaceResult</div><div class="model-field field-pk">id (PK)</div><div class="model-field field-fk">race_id (FK)</div><div class="model-field field-fk">driver_id (FK)</div><div class="model-field field-fk">constructor_id (FK)</div><div class="model-field">position</div><div class="model-field">grid</div><div class="model-field">points</div><div class="model-field">status</div><div class="model-field">fastest_lap_time</div></div>
+    <div class="model-card"><div class="model-head">LapTime</div><div class="model-field field-pk">id (PK)</div><div class="model-field field-fk">race_id (FK)</div><div class="model-field field-fk">driver_id (FK)</div><div class="model-field">lap (номер)</div><div class="model-field">position</div><div class="model-field">time_ms (int)</div></div>
+    <div class="model-card"><div class="model-head">PitStop</div><div class="model-field field-pk">id (PK)</div><div class="model-field field-fk">race_id (FK)</div><div class="model-field field-fk">driver_id (FK)</div><div class="model-field">stop (номер)</div><div class="model-field">lap</div><div class="model-field">duration_ms (int)</div></div>
+    <div class="model-card"><div class="model-head">DriverStanding</div><div class="model-field field-pk">id (PK)</div><div class="model-field field-fk">season_id (FK)</div><div class="model-field field-fk">race_id (FK)</div><div class="model-field field-fk">driver_id (FK)</div><div class="model-field">position</div><div class="model-field">points</div><div class="model-field">wins</div></div>
+    <div class="model-card"><div class="model-head">SyncLog</div><div class="model-field field-pk">id (PK)</div><div class="model-field">task_name</div><div class="model-field">status</div><div class="model-field">started_at</div><div class="model-field">finished_at</div><div class="model-field">records_created</div><div class="model-field">records_updated</div><div class="model-field">error_message</div></div>
+  </div>
+  <div class="roadmap-note" style="margin-top:12px">Жёлтый — первичный ключ. Синий — внешний ключ. Индексы обязательны на все FK и на (race_id, driver_id) в LapTime и PitStop.</div>
+</div>
+
+<!-- API -->
+<div id="api" class="section">
+  <div class="endpoint-list">
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/seasons/</div><div class="endpoint-desc">Список сезонов. ?year=2024</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/races/?season=2024&amp;circuit=monza</div><div class="endpoint-desc">Гонки с фильтрацией по сезону и трассе</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/races/{id}/results/</div><div class="endpoint-desc">Полные результаты гонки</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/drivers/?search=hamilton</div><div class="endpoint-desc">Поиск пилотов по имени и национальности</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/drivers/{id}/career/</div><div class="endpoint-desc">Карьерная статистика: сезоны, очки, победы, поулы</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/constructors/{id}/seasons/</div><div class="endpoint-desc">Выступления команды по сезонам</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/circuits/{id}/history/</div><div class="endpoint-desc">История гонок на трассе: победители, рекорды</div></div></div>
+    <div class="endpoint-section-label">Аналитика</div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/analytics/drivers/compare/?d1=44&amp;d2=1&amp;season=2023</div><div class="endpoint-desc">Сравнение двух пилотов: очки, подиумы, DNF, поулы</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/analytics/races/{id}/pace/</div><div class="endpoint-desc">Медианный темп по кругам, разбивка по стинтам</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/analytics/races/{id}/strategies/</div><div class="endpoint-desc">Стратегии пит-стопов: круги, стинты, длительность</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/analytics/seasons/{year}/championship-progress/</div><div class="endpoint-desc">Прогресс очков по этапам (данные для line chart)</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/analytics/circuits/{id}/lap-records/</div><div class="endpoint-desc">Рекорды кругов на трассе по годам</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/analytics/constructors/pitstop-performance/?season=2024</div><div class="endpoint-desc">Среднее и минимальное время пит-стопа по командам</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/analytics/constructors/dominance/</div><div class="endpoint-desc">Доля побед и подиумов команд по сезонам</div></div></div>
+    <div class="endpoint-section-label">Служебные</div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/v1/sync/status/</div><div class="endpoint-desc">Последние запуски синхронизации (только admin)</div></div></div>
+    <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/v1/sync/trigger/</div><div class="endpoint-desc">Запустить синхронизацию вручную (admin + JWT)</div></div></div>
+    <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/schema/swagger-ui/</div><div class="endpoint-desc">Swagger UI — интерактивная документация</div></div></div>
+  </div>
+</div>
+
+<!-- STACK -->
+<div id="stack" class="section">
+  <div class="stack-grid">
+    <div class="stack-cat"><div class="stack-cat-title">Бэкенд</div><div class="stack-item">Django 5.x <span class="stack-note">фреймворк</span></div><div class="stack-item">Django REST Framework <span class="stack-note">API</span></div><div class="stack-item">simplejwt <span class="stack-note">JWT</span></div><div class="stack-item">django-filter <span class="stack-note">фильтрация</span></div><div class="stack-item">drf-spectacular <span class="stack-note">Swagger</span></div><div class="stack-item">python-decouple <span class="stack-note">.env</span></div></div>
+    <div class="stack-cat"><div class="stack-cat-title">БД и кэш</div><div class="stack-item">PostgreSQL 16 <span class="stack-note">основная БД</span></div><div class="stack-item">Redis 7 <span class="stack-note">кэш</span></div><div class="stack-item">RabbitMQ <span class="stack-note">брокер задач</span></div><div class="stack-item">psycopg3 <span class="stack-note">драйвер PG</span></div></div>
+    <div class="stack-cat"><div class="stack-cat-title">Фоновые задачи</div><div class="stack-item">Celery 5 <span class="stack-note">воркеры</span></div><div class="stack-item">Celery Beat <span class="stack-note">расписание</span></div><div class="stack-item">httpx <span class="stack-note">HTTP клиент</span></div></div>
+    <div class="stack-cat"><div class="stack-cat-title">Инфраструктура</div><div class="stack-item">Docker + Compose <span class="stack-note">контейнеры</span></div><div class="stack-item">Nginx <span class="stack-note">reverse proxy</span></div><div class="stack-item">Gunicorn <span class="stack-note">WSGI</span></div><div class="stack-item">GitHub Actions <span class="stack-note">CI/CD</span></div></div>
+    <div class="stack-cat"><div class="stack-cat-title">Тестирование</div><div class="stack-item">pytest-django <span class="stack-note">unit + e2e</span></div><div class="stack-item">factory_boy <span class="stack-note">фикстуры</span></div><div class="stack-item">pytest-cov <span class="stack-note">coverage</span></div><div class="stack-item">responses <span class="stack-note">мок HTTP</span></div></div>
+    <div class="stack-cat"><div class="stack-cat-title">Мониторинг (этап 6)</div><div class="stack-item">structlog <span class="stack-note">JSON логи</span></div><div class="stack-item">django-prometheus <span class="stack-note">метрики</span></div><div class="stack-item">Prometheus <span class="stack-note">сбор</span></div><div class="stack-item">Grafana <span class="stack-note">дашборды</span></div></div>
+  </div>
+</div>
+
+<!-- COVERAGE -->
+<div id="coverage" class="section">
+  <div class="section-subtitle">Охват роадмапа oh-my-backend</div>
+  <div class="coverage-row"><span class="coverage-label">Этап 1 — Docker</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:100%;background:#1D9E75"></div></div><span class="coverage-pct">100%</span></div>
+  <div class="coverage-row"><span class="coverage-label">Этап 2 — Linux (деплой на VPS)</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:60%;background:#1D9E75"></div></div><span class="coverage-pct">60%</span></div>
+  <div class="coverage-row"><span class="coverage-label">Этап 3 — Общие знания (git, форматы)</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:80%;background:#1D9E75"></div></div><span class="coverage-pct">80%</span></div>
+  <div class="coverage-row"><span class="coverage-label">Этап 4 — Сеть (HTTP, DNS, SSL)</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:70%;background:#1D9E75"></div></div><span class="coverage-pct">70%</span></div>
+  <div class="coverage-row"><span class="coverage-label">Этап 5 — Базы данных (PostgreSQL + Redis)</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:85%;background:#1D9E75"></div></div><span class="coverage-pct">85%</span></div>
+  <div class="coverage-row"><span class="coverage-label">Этап 6 — Протокол HTTP (REST, методы)</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:95%;background:#1D9E75"></div></div><span class="coverage-pct">95%</span></div>
+  <div class="coverage-row"><span class="coverage-label">Этап 7 — Безопасность (JWT, HTTPS)</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:75%;background:#1D9E75"></div></div><span class="coverage-pct">75%</span></div>
+  <div class="coverage-row"><span class="coverage-label">Этап 10 — Полнотекстовый поиск</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:50%;background:#EF9F27"></div></div><span class="coverage-pct">50%</span></div>
+  <div class="coverage-row"><span class="coverage-label">Этап 11 — Логи и метрики</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:80%;background:#1D9E75"></div></div><span class="coverage-pct">80%</span></div>
+  <div class="coverage-row"><span class="coverage-label">Этап 12 — Проектирование (SOLID, TDD)</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:65%;background:#1D9E75"></div></div><span class="coverage-pct">65%</span></div>
+
+  <div class="section-subtitle" style="margin-top:20px">Программа Яндекс Практикум</div>
+  <div class="coverage-row"><span class="coverage-label">Django + ORM + Admin</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:100%;background:#378ADD"></div></div><span class="coverage-pct">100%</span></div>
+  <div class="coverage-row"><span class="coverage-label">Django REST Framework</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:100%;background:#378ADD"></div></div><span class="coverage-pct">100%</span></div>
+  <div class="coverage-row"><span class="coverage-label">Тестирование (pytest)</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:100%;background:#378ADD"></div></div><span class="coverage-pct">100%</span></div>
+  <div class="coverage-row"><span class="coverage-label">Деплой на сервер</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:100%;background:#378ADD"></div></div><span class="coverage-pct">100%</span></div>
+  <div class="coverage-row"><span class="coverage-label">Docker + CI/CD</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:100%;background:#378ADD"></div></div><span class="coverage-pct">100%</span></div>
+  <div class="coverage-row"><span class="coverage-label">Асинхронный Python (Celery)</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:90%;background:#378ADD"></div></div><span class="coverage-pct">90%</span></div>
+  <div class="coverage-row"><span class="coverage-label">Парсинг / внешние API</span><div class="coverage-bar-bg"><div class="coverage-bar-fill" style="width:85%;background:#378ADD"></div></div><span class="coverage-pct">85%</span></div>
+</div>
+
+<script>
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+function togglePhase(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.phase-chevron');
+  body.classList.toggle('open');
+  chevron.classList.toggle('open');
+}
+</script>
+</body>
+</html>
