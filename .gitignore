@@ -47,9 +47,6 @@ htmlcov/
 .mypy_cache/
 .dmypy.json
 
-# Docker
-.dockerignore
-
 # IDEs
 .idea/
 .vscode/
@@ -61,3 +58,6 @@ htmlcov/
 # Celery
 celerybeat-schedule
 celerybeat.pid
+
+# Учебный план сезона (личные материалы, не часть проекта)
+RoadMap/
