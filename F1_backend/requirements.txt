@@ -1,0 +1,26 @@
+# Зависимости приложения. Только то, что нужно для работы в проде.
+# Инструменты разработки — в requirements-dev.txt
+#
+# Здесь перечислены прямые зависимости; транзитивные pip доставит сам.
+# Если понадобится полная воспроизводимость сборки — переходить на lock-файл
+# (pip-tools или uv), это тема ГП-15 вместе с CI.
+
+# Ядро
+Django==6.0.4
+python-decouple==3.8
+
+# API
+djangorestframework==3.18.0
+djangorestframework-simplejwt==5.5.1
+django-filter==26.1
+drf-spectacular==0.30.0
+
+# База данных
+psycopg[binary]==3.3.4
+
+# Фоновые задачи и кэш
+celery==5.6.3
+redis==8.1.0
+
+# HTTP-клиент к Jolpica-F1 API
+httpx==0.28.1
