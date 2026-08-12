@@ -24,3 +24,5 @@ redis==8.1.0
 
 # HTTP-клиент к Jolpica-F1 API
 httpx==0.28.1
+
+django_celery_beat==2.9.0
