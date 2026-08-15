@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from decouple import config, Csv
 from pathlib import Path
+from urllib.parse import quote
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,13 +33,22 @@ ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 # Application definition
 
 INSTALLED_APPS = [
+    # django приложения
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # сторонние приложения
     "django_celery_beat",
+    # написанные приложения
+    "races.apps.RacesConfig",
+    "constructors.apps.ConstructorsConfig",
+    "drivers.apps.DriversConfig",
+    "seasons.apps.SeasonsConfig",
+    "sync.apps.SyncConfig",
+    "core.apps.CoreConfig",
 ]
 
 MIDDLEWARE = [
@@ -127,5 +137,14 @@ STATIC_URL = "static/"
 CELERY_TIMEZONE = "Europe/Moscow"
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
-CELERY_BROKER_URL = f"amqp://{config('RABBITMQ_DEFAULT_USER')}:{config('RABBITMQ_DEFAULT_PASS')}@rabbitmq:5672"
+CELERY_BROKER_URL = f"amqp://{config('RABBITMQ_DEFAULT_USER')}:{quote(config('RABBITMQ_DEFAULT_PASS'))}@rabbitmq:5672"
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+
+# Redis Configuration Options
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": f"redis://:{quote(config('REDIS_PASSWORD'))}@redis:{config('REDIS_PORT')}/1",
+    }
+}
