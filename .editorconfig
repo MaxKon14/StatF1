@@ -1,0 +1,26 @@
+# Договорённости о форматировании, которые понимает любой редактор.
+# Всё, что специфично для языка, настраивают инструменты: Python — ruff.
+# https://editorconfig.org
+
+# Поиск правил не уходит выше этого каталога.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
+max_line_length = 88
+
+# Рецепты make работают только с табуляцией: пробелы дают "missing separator".
+[Makefile]
+indent_style = tab
+
+[*.{yml,yaml}]
+indent_size = 2
+
+# В markdown два пробела в конце строки — это перенос, их нельзя отсекать.
+[*.md]
+trim_trailing_whitespace = false
