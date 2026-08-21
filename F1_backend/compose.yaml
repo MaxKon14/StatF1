@@ -1,7 +1,7 @@
 services:
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: [python, manage.py, runserver, "0.0.0.0:8000"]
     volumes:
       - .:/app
     ports:
@@ -10,6 +10,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   db:
     image: postgres:18-alpine
@@ -67,6 +69,8 @@ services:
     depends_on:
       rabbitmq: { condition: service_healthy }
       db: { condition: service_healthy }
+      migrate:
+        condition: service_completed_successfully
 
   beat:
     build: .
@@ -79,7 +83,16 @@ services:
         condition: service_healthy
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
+  migrate:
+    build: .
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput"]
 
 volumes:
   postgres_data:
